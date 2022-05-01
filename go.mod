@@ -6,9 +6,11 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1575
 	github.com/aws/aws-sdk-go v1.44.0
 	github.com/aws/aws-sdk-go-v2/config v1.15.4
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.36.1
 	github.com/elastic/go-elasticsearch v0.0.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.0.86
 	github.com/jonboulle/clockwork v0.3.0 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.6 // indirect

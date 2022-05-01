@@ -4,15 +4,6 @@ import (
 	ecs "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
-type Aliyun struct {
-	Region    string
-	Key       string
-	Secret    string
-	ECSClient *ecs.Client
-}
-
-func (aliyun *Aliyun) auth() error {
-	client, err := ecs.NewClientWithAccessKey(aliyun.Region, aliyun.Key, aliyun.Secret)
-	aliyun.ECSClient = client
-	return err
+func NewClient(accessKey string, secretKey string, region string, projectId string) (*ecs.Client, error) {
+	return ecs.NewClientWithAccessKey(region, accessKey, secretKey)
 }

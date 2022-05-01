@@ -3,22 +3,22 @@ package amazon
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 )
 
-type Amazon struct {
-	Region string
-	Key    string
-	Secret string
-}
-
-func (a *Amazon) auth(accessKey string, secretKey string) error {
-	appCreds := aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""))
-
-	_, err := appCreds.Retrieve(context.TODO())
-
-	// creds := credentials.NewStaticCredentials(accessKey, secretKey, "")
-	// sess := session.Must(session.NewSession(&aws.))
-	return err
+func NewClient(accessKey string, secretKey string, region string, projectId string) (*ec2.Client, error) {
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithRegion("us-west-2"),
+		config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	client := ec2.NewFromConfig(cfg)
+	return client, nil
 }
