@@ -1,4 +1,4 @@
-package amazon
+package aws
 
 type IOSS interface {
 	List()

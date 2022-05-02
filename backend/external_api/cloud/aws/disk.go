@@ -1,4 +1,4 @@
-package amazon
+package aws
 
 type IDisk interface {
 	List()
