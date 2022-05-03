@@ -11,8 +11,6 @@ import (
 	"github.com/aws/smithy-go"
 )
 
-var PageSize int32 = 1000
-
 type IInstance interface {
 	List(instanceIds []string) []types.Reservation
 	Create(instanceParam InstanceParam) (*ec2.RunInstancesOutput, error)
@@ -25,7 +23,6 @@ type IInstance interface {
 }
 
 type Instance struct {
-	input  ec2.DescribeInstancesInput
 	client *ec2.Client
 	ctx    context.Context
 }
@@ -36,6 +33,8 @@ func (i *Instance) List(instanceIds []string) []types.Reservation {
 	input := ec2.DescribeInstancesInput{}
 	if len(instanceIds) > 0 {
 		input.InstanceIds = instanceIds
+	} else {
+		input.MaxResults = aws.Int32(1000)
 	}
 	for {
 		result, errs := i.client.DescribeInstances(i.ctx, &input)
