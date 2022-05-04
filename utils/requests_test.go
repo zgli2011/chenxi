@@ -52,4 +52,7 @@ func Test_PostJson(t *testing.T) {
 	fmt.Println(resp.StatusCode)
 	fmt.Println(resp.Text())
 }
-func Test_PostForm(t *testing.T) {}
+func Test_PostForm(t *testing.T) {
+	a := map[string]string{}
+	fmt.Println(len(a))
+}

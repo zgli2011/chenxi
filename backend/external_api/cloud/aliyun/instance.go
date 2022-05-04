@@ -1,16 +1,16 @@
 package aliyun
 
 import (
-	"context"
 	"fmt"
+	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ecs20140526 "github.com/alibabacloud-go/ecs-20140526/v2/client"
+	"github.com/alibabacloud-go/tea/tea"
 )
 
 type IInstance interface {
-	List(instanceIds []string) []types.Reservation
-	Create(instanceParam InstanceParam) (*ec2.RunInstancesOutput, error)
+	List(instanceIds []string) []*ecs20140526.DescribeInstancesResponseBodyInstancesInstance
+	Create(instanceParam InstanceParam)
 	Delete(instanceId string) error
 	ShutDown(instanceIds []string) error
 	Start(instanceIds []string) error
@@ -19,22 +19,22 @@ type IInstance interface {
 	ChangeIntanceType(instanceId string, instanceType string) error
 }
 
-func (i *Instance) List(instanceIds []string) []types.Reservation {
-	instances := []types.Reservation{}
-
-	input := ec2.DescribeInstancesInput{}
+func (i *Instance) List(instanceIds []string) []*ecs20140526.DescribeInstancesResponseBodyInstancesInstance {
+	instances := []*ecs20140526.DescribeInstancesResponseBodyInstancesInstance{}
+	request := &ecs20140526.DescribeInstancesRequest{}
 	if len(instanceIds) > 0 {
-		input.InstanceIds = instanceIds
+		request.InstanceIds = tea.String(strings.Join(instanceIds, ","))
 	}
+	request.MaxResults = tea.Int32(100)
 	for {
-		result, errs := i.client.DescribeInstances(i.ctx, &input)
-		if errs != nil {
-			fmt.Println(errs)
+		response, err := i.client.DescribeInstances(request)
+		if err != nil {
+			fmt.Println(err)
 			break
 		}
-		instances = append(instances, result.Reservations...)
-		if result.NextToken != nil {
-			input.NextToken = result.NextToken
+		instances = append(instances, response.Body.Instances.Instance...)
+		if response.Body.NextToken != nil {
+			request.NextToken = response.Body.NextToken
 		} else {
 			break
 		}
@@ -43,9 +43,7 @@ func (i *Instance) List(instanceIds []string) []types.Reservation {
 }
 
 type Instance struct {
-	input  ec2.DescribeInstancesInput
-	client *ec2.Client
-	ctx    context.Context
+	client *ecs20140526.Client
 }
 
 type InstanceParam struct {
@@ -53,7 +51,7 @@ type InstanceParam struct {
 	SubnetId             string
 	SecurityGroupIds     []string
 	InstanceType         string
-	Tags                 []map[string]string
+	Tags                 map[string]string
 	PrivateIP            string
 	Iam                  string
 	UserData             string
@@ -64,4 +62,28 @@ type InstanceParam struct {
 		SnapshotId       string
 		PerformanceLevel int32
 	}
+}
+
+func (i *Instance) Create(instanceParam InstanceParam) {
+	request := &ecs20140526.RunInstancesRequest{
+		ImageId:          &instanceParam.ImageId,
+		InstanceType:     &instanceParam.InstanceType,
+		SecurityGroupIds: instanceParam.SecurityGroupIds,
+		VSwitchId:        &instanceParam.SubnetId,
+	}
+	hostname := ""
+	for key, value := range instanceParam.Tags {
+		if key == "Name" {
+			hostname = value
+			break
+		}
+	}
+	request.InstanceName = &hostname
+	request.HostName = &hostname
+	request.Amount = tea.Int32(1)
+	request.PasswordInherit = tea.Bool(true)
+	request.InstanceChargeType = tea.String("PrePaid")
+	request.PeriodUnit = tea.String("Month")
+	request.Period = tea.Int32(1)
+	request.Amount = tea.Int32(1)
 }

@@ -57,7 +57,7 @@ type InstanceParam struct {
 	SubnetId             string
 	SecurityGroupIds     []string
 	InstanceType         string
-	Tags                 []map[string]string
+	Tags                 map[string]string
 	PrivateIP            string
 	Iam                  string
 	UserData             string
@@ -84,19 +84,14 @@ func (i *Instance) Create(instanceParam InstanceParam) (*ec2.RunInstancesOutput,
 	}
 	// 标签
 	if len(instanceParam.Tags) > 0 {
-		tags := []types.TagSpecification{}
-		for _, item := range instanceParam.Tags {
-			tag := types.TagSpecification{}
-			for key, value := range item {
-				tag.Tags = append(tag.Tags, types.Tag{Key: aws.String(key), Value: aws.String(value)})
-
-			}
-			tag.ResourceType = types.ResourceTypeInstance
-			tags = append(tags, tag)
-			tag.ResourceType = types.ResourceTypeVolume
-			tags = append(tags, tag)
+		tag := []types.Tag{}
+		for key, value := range instanceParam.Tags {
+			tag = append(tag, types.Tag{Key: aws.String(key), Value: aws.String(value)})
 		}
-		input.TagSpecifications = tags
+		input.TagSpecifications = []types.TagSpecification{
+			{ResourceType: types.ResourceTypeInstance, Tags: tag},
+			{ResourceType: types.ResourceTypeVolume, Tags: tag},
+		}
 	}
 	// 磁盘
 	if len(instanceParam.VolumeDeviceMappings) > 0 {
